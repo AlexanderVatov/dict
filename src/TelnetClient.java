@@ -19,13 +19,12 @@ public class TelnetClient {
 
     public String readLine() throws IOException {
         String result;
-        //Get rid of any initial blank lines
-        while (true){
+        // Get rid of any initial blank lines
+        while (true) {
             result = inbound.readLine();
-            if(result != null && result.isEmpty())
-                continue;
-            else
+            if (result == null || !result.isEmpty()) {
                 return result;
+            }
         }
     }
 
@@ -68,7 +67,7 @@ public class TelnetClient {
                 } else {
                     System.out.println(server_message);
                 }
-            };
+            }
 
             // Read and transmit user response
             if(scanner.ready()){
