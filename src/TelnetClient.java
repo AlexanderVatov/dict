@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Objects;
+
 
 public class TelnetClient {
     private Socket socket;
@@ -40,5 +42,51 @@ public class TelnetClient {
         outbound.close();
         inbound.close();
         socket.close();
+    }
+
+    public static void main(String[] args) throws IOException {
+        String hostname = null;
+        int port = 23;
+        try {
+            hostname = args[0];
+            if(args.length >= 2) port = Integer.parseInt(args[1]);
+        } catch (ArrayIndexOutOfBoundsException | NumberFormatException ignored) {
+            System.out.println("Usage: java TelnetClient HOSTNAME [PORT]");
+            System.exit(1);
+        }
+        TelnetClient client = new TelnetClient(hostname, port);
+        BufferedReader scanner = new BufferedReader(new InputStreamReader(System.in));
+        String server_message, user_response;
+
+        // REPL loop
+        while(true) {
+            // Read from Telnet
+            while(client.ready()) {
+                server_message = client.readLine();
+                if (server_message == null) {
+                    break;
+                } else {
+                    System.out.println(server_message);
+                }
+            };
+
+            // Read and transmit user response
+            if(scanner.ready()){
+                user_response = scanner.readLine();
+                if (Objects.equals(user_response, "exit")) break;
+                else {
+                    System.err.println("Sending: " + user_response);
+                    client.writeLine(user_response);
+                }
+            } else{
+                // No new input from either server or user.
+                // Sleep for a bit to reduce busy waiting, then check again.
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException ignored) {}
+            }
+
+        }
+        client.close();
     }
 }
