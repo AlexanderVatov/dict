@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 
 public class TelnetClient {
@@ -18,14 +19,26 @@ public class TelnetClient {
     }
 
     public String readLine() throws IOException {
-        String result;
-        // Get rid of any initial blank lines
-        while (true) {
-            result = inbound.readLine();
-            if (result == null || !result.isEmpty()) {
-                return result;
+        return inbound.readLine();
+    }
+
+    public String readLine(int timeoutMilliseconds) throws IOException {
+        if (timeoutMilliseconds < 0) return readLine();
+
+        long timerStart = System.currentTimeMillis();
+        String response;
+        while(System.currentTimeMillis() - timerStart <= timeoutMilliseconds) {
+            if(inbound.ready()) {
+                response = inbound.readLine();
+                if(response != null) {
+                    return response;
+                }
             }
+            try {
+                TimeUnit.MILLISECONDS.sleep(50);
+            } catch (InterruptedException ignored) {}
         }
+        return null;
     }
 
     public boolean ready() throws IOException {
