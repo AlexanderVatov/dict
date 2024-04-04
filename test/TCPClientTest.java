@@ -9,6 +9,6 @@ class TCPClientTest {
     public void testOnline() throws IOException {
         TCPClient client = new TCPClient("india.colorado.edu", 13);
         String response = client.readLine() + "\n" + client.readLine();
-        assertTrue(response.contains("UTC(NIST)"));
+        assertTrue(response.contains("UTC(NIST)"),"Unexpected response: " + response);
     }
 }
