@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
  *
  * All messages are assumed to be encoded with UTF-8 and end with a line separator.
  */
-public class TCPClient {
+public class TCPClient implements DICTClient.Backend{
     private Socket socket;
     private PrintWriter outbound;
     private BufferedReader inbound;
@@ -19,10 +19,30 @@ public class TCPClient {
     TCPClient(String hostname, int port) throws IOException {
         socket = new Socket(hostname, port);
         socket.setKeepAlive(true);
-        // Prevent read operations for blocking for longer than two seconds
-        socket.setSoTimeout(2000);
+        // Prevent read operations for blocking for longer than one second
+        socket.setSoTimeout(1000);
         outbound = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
         inbound = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public String query(String query) throws IOException {
+        writeLine(query);
+
+        StringBuilder builder = new StringBuilder();
+        String read;
+
+        while(true) {
+            read = readLine();
+            if(read == null) break;
+            else {
+                System.out.println(read);
+                builder.append(read);
+                builder.append('\n');
+            }
+        }
+
+        return builder.toString();
     }
 
     public Socket getSocket() {
@@ -46,5 +66,4 @@ public class TCPClient {
         inbound.close();
         socket.close();
     }
-
 }
