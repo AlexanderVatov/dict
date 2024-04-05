@@ -20,7 +20,7 @@ public class TCPClient implements DICTClient.Backend{
         socket = new Socket(hostname, port);
         socket.setKeepAlive(true);
         // Prevent read operations for blocking for longer than one second
-        socket.setSoTimeout(1000);
+        socket.setSoTimeout(5000);
         outbound = new PrintWriter(socket.getOutputStream(), true, StandardCharsets.UTF_8);
         inbound = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
     }
@@ -31,6 +31,8 @@ public class TCPClient implements DICTClient.Backend{
 
         StringBuilder builder = new StringBuilder();
         String read;
+        int linesRead = 0;
+        socket.setSoTimeout(10000);
 
         while(true) {
             read = readLine();
@@ -39,10 +41,12 @@ public class TCPClient implements DICTClient.Backend{
                 System.out.println(read);
                 builder.append(read);
                 builder.append('\n');
+                linesRead += 1;
+                socket.setSoTimeout(1000);
             }
         }
-
-        return builder.toString();
+        if(linesRead > 0) return builder.toString();
+        else throw new SocketTimeoutException("The connection timed out before any data was received!");
     }
 
     public Socket getSocket() {
