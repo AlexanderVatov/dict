@@ -16,8 +16,11 @@ public class DICTClient {
     public record Definition(String headword, String dictionaryID, String dictionaryName, String text) {}
 
     public List<Definition> define(String dictionaryID, String query) throws IOException {
-        String response = backend.query(STR."define \{dictionaryID} \{query}");
-        Scanner scanner = new Scanner(response);
+        String response = backend.query(STR."DEFINE \{dictionaryID} \{query}");
+        if(response == null || response.isBlank()) {
+            throw new IOException("Backend gave no response or empty response!");
+        }
+        Scanner scanner = new Scanner(response.strip());
 
 
         int code = scanner.nextInt();
