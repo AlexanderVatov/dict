@@ -13,8 +13,9 @@ public class DICTClient {
     public DICTClient(Backend backend){
         this.backend = backend;
     }
-    public record Definition(String headword, String dictionaryID, String dictionaryName, String text) {}
+
     public record Definition(String headword, String databaseID, String databaseDescription, String text) {}
+    public record Database(String databaseID, String databaseDescription){}
 
     public List<Definition> define(String databaseID, String query) throws IOException {
         // The format of the command and the response are described in section 3.2 of RFC 2229:
@@ -53,7 +54,7 @@ public class DICTClient {
             if(scanner.nextInt() != 151) System.err.println("Warning: Code 151 expected at the start of a definition!");
             String headword = scanner.next(quotedString).replace("\"","");
             String readDatabaseID = scanner.next();
-            String databaseName = scanner.nextLine().replace("\"","").strip();
+            String databaseName = scanner.nextLine().strip().replace("\"","");
 
             // Per section 2.4.3 of RFC 2229, each definition ends with a line containing
             // a single period (\n.\n):
