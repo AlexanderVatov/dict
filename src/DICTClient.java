@@ -70,4 +70,36 @@ public class DICTClient {
         }
         return definitionList;
     }
+
+    public List<Database> listDatabases() throws IOException {
+        // The format of the command and the response are described in section 3.5.1 of RFC 2229:
+        //https://www.rfc-editor.org/rfc/rfc2229.html#section-3.5.1
+        String response = backend.query("SHOW DB");
+        if(response == null || response.isBlank()) {
+            throw new IOException("Backend gave no response or empty response!");
+        }
+
+        Scanner scanner = new Scanner(response);
+        int code = scanner.nextInt();
+
+        if(code == 220) {
+            scanner.nextLine();
+            code = scanner.nextInt();
+        }
+
+        List<Database> databaseList = new ArrayList<>();
+
+        if(code == 554) {
+            return databaseList;
+        } else if(code != 110) {
+            throw new IOException("Unexpected response by backend:\n" + response);
+        }
+
+        int numberOfDefinitionsExpected = scanner.nextInt();
+        scanner.nextLine();
+        for (int i = 0; i < numberOfDefinitionsExpected; ++i) {
+            databaseList.add(new Database(scanner.next(), scanner.nextLine().strip().replace("\"", "")));
+        }
+        return databaseList;
+    }
 }
